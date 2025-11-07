@@ -37,11 +37,13 @@ def prepare_dataset(json_path, output_csv_path):
                     if cat_id:
                         category_name = categories[cat_id]['name']
                     if category_name in drum_categories:
-                        prepared_data.append({
-                            'filename': image['filename'],
-                            'bbox': ann['a_bbox'],
-                            'category': category_name
-                        })
+                        bbox = ann['a_bbox']
+                        if bbox[2] > bbox[0] and bbox[3] > bbox[1]:
+                            prepared_data.append({
+                                'filename': image['filename'],
+                                'bbox': bbox,
+                                'category': category_name
+                            })
 
     with open(output_csv_path, 'w', newline='') as csvfile:
         fieldnames = ['filename', 'bbox', 'category']

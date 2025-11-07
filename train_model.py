@@ -128,13 +128,9 @@ def main():
                             total_iou += best_iou
                             num_predictions += 1
 
-                loss_dict = model(images, targets)
-                losses = sum(loss for loss in loss_dict.values())
-                val_loss += losses.item()
-        
-        avg_val_loss = val_loss / len(val_loader)
+                
         avg_iou = total_iou / num_predictions if num_predictions > 0 else 0
-        print(f"Epoch {epoch} Validation Loss: {avg_val_loss:.4f}, Average IoU: {avg_iou:.4f}")
+        print(f"Epoch {epoch} Average IoU: {avg_iou:.4f}")
 
     # Save the trained model
     torch.save(model.state_dict(), 'drum_omr_model.pth')
