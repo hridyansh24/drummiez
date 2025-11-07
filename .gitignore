@@ -36,3 +36,12 @@ Pipfile.lock
 
 # Uploaded files (if any)
 uploads/
+
+# Large artifacts / datasets / weights
+data/ds2_dense/
+data/ds2_dense.tar.gz
+data/DeepScoresV2.zip
+data/*.tar.gz
+data/*.zip
+*.pth
+*.pt
