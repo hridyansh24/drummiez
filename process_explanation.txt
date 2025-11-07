@@ -113,3 +113,98 @@ This document will be updated as the project progresses and more specific techni
     - Created a `get_midi_pitch` helper function to intelligently map MusicXML note properties to MIDI pitches.
     - Updated the `parse_drumsheet` function to use the new mapping and produce a more accurate list of MIDI notes.
 - **Refined Audio Generation:** Simplified the `generate_drum_audio` function to directly use the MIDI pitches from the parsed notes, removing redundant mapping logic.
+
+**2025-11-07:**
+
+- **API Hardening:** Wrapped the optional `oemer` import and added a MusicXML fallback so `/parse_drumsheet/` can still operate when the library lacks a `run()` helper. Added coverage for `note.Unpitched`, `chord.Chord`, and notehead heuristics plus StreamingResponse-based WAV delivery with background cleanup in `/generate_drum_audio/`.
+- **Dataset & Training Fixes:** Rebuilt `prepare_dataset.py` and the CSV schema to aggregate all drum annotations per page, then updated `DrumSheetDataset` to deserialize the JSON lists into tensors so Faster R-CNN receives complete supervision for every image.
+- **Dependency Updates:** Aligned `requirements.txt`/`Pipfile` with the actual stack (Torch 2.6.0, torchvision 0.21.0, sympy 1.13.1, python-multipart, httpx) and pinned Pipenv to Python 3.11 for a reproducible environment. Documented the need for a real General MIDI soundfont via `SOUNDFONT_PATH`.
+- **Verification Attempts:** Rebuilt `data/prepared_data.csv`, installed the refreshed requirements inside `.venv`, and smoke-tested `/parse_drumsheet/` through FastAPI’s `TestClient` with a small inline MusicXML file. Direct `uvicorn` execution is blocked in the sandbox (`[Errno 1] operation not permitted` when binding to localhost), so full HTTP-level verification must be run outside the restricted environment.
+- **Training Performance Tweaks:** Added optional image down-scaling, tensor caching, CLI arguments (epochs/batch-size/workers), and DataLoader prefetching to `train_model.py` to reduce per-epoch runtime on CPU-bound hardware. Torch-based sanity checks could not run inside the sandbox because OpenMP cannot allocate shared memory (`OMP: Error #179`); verification will need to happen on an unrestricted host.
+
+**Next Steps:**
+
+1. Install FluidSynth plus a General MIDI soundfont on the target machine, set `SOUNDFONT_PATH`, and rerun `/generate_drum_audio/` to confirm the streaming response end-to-end.
+2. Run `uvicorn main:app --host 0.0.0.0 --port 8000` outside the sandbox (or on a port it permits) to validate the service over HTTP; consider adding a lightweight integration test script.
+3. Extend `/parse_drumsheet/` to capture Oemer outputs (if available) and feed them into automated regression tests once the real OMR library exposes a callable `run` helper.
+4. Containerize the backend with a `Dockerfile` that installs FluidSynth/soundfonts so deployment targets have consistent audio dependencies.
+
+### 8. Integrating the Trained Detector into the API
+
+- Added `model_inference.py`, which lazily imports PyTorch/torchvision so the module can be imported in lightweight environments (tests, docs) without immediately loading GPU libs.
+- `DrumOMRInference` reconstructs the Faster R-CNN head used during training, loads `drum_omr_model.pth`, and exposes `predict_path`. The new `Detection` dataclass now carries `bbox`, `score`, and `label`.
+- `detections_to_notes` sorts detections left-to-right and converts them into note events. It accepts an optional `label_to_midi` mapping so category-aware MIDI assignment can be configured without code changes, falling back to a top/middle/bottom heuristic otherwise.
+- `main.py` now loads detector weights automatically (unless `SKIP_MODEL_LOAD=1` is set—handy for tests) and wires the inference output directly into `/parse_drumsheet/` whenever a PNG/JPG/BMP/TIFF is uploaded. MusicXML files and Oemer outputs continue to run through `music21`.
+
+### 9. Optional Label-to-MIDI Mapping
+
+- Introduced the `DRUM_LABEL_MAP_PATH` env var. When provided, the JSON file (e.g., `{ "1": 42, "2": 38 }`) is parsed via `load_label_mapping` and used to override the heuristic mapping, so specific detector classes (notehead types, cymbals, rests) can be routed to precise MIDI pitches.
+- If the JSON is missing or invalid, the API logs a warning and keeps operating with the default heuristic to avoid blocking manual experiments.
+
+### 10. Test Coverage
+
+- Added a pytest suite:
+  - `tests/test_model_inference.py` verifies both the label-aware mapping and the heuristic fallback so regressions in `detections_to_notes` are caught immediately.
+  - `tests/test_parse_endpoint.py` uses FastAPI’s `TestClient` plus a monkeypatched `INFERENCE_RUNNER` to confirm the `/parse_drumsheet/` image path returns detector-generated notes. The test sets `SKIP_MODEL_LOAD=1` so torch is never initialized during collection.
+  - `tests/conftest.py` ensures the repository root is on `sys.path`.
+- `pytest` is now a declared dependency in `requirements.txt`, and the README documents running the suite with simply `pytest`.
+
+### 11. How to Run the System End-to-End
+
+1. **Create/activate the virtualenv and install deps**
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+2. **Install FluidSynth + download a soundfont**, then export:
+   ```bash
+   export SOUNDFONT_PATH="/absolute/path/to/FluidR3_GM.sf2"
+   ```
+
+3. **Expose your detector weights (optional but recommended):**
+   ```bash
+   export MODEL_WEIGHTS_PATH="/absolute/path/to/drum_omr_model.pth"
+   export MODEL_CONFIDENCE=0.5        # tweak for stricter/looser detections
+   export DRUM_LABEL_MAP_PATH="/absolute/path/to/label_map.json"  # optional
+   ```
+   If `MODEL_WEIGHTS_PATH` is omitted, `/parse_drumsheet/` still works for MusicXML uploads but won’t auto-parse bitmaps.
+
+4. **Run the API:**
+   ```bash
+   uvicorn main:app --host 0.0.0.0 --port 8000
+   # or
+   python main.py
+   ```
+
+5. **Parse an image and listen back:**
+   ```bash
+   curl -F "file=@/path/to/sheet.png" \
+        "http://localhost:8000/parse_drumsheet/?bpm=110" \
+        -o parsed_notes.json
+
+   curl -X POST "http://localhost:8000/generate_drum_audio/?bpm=110" \
+        -H "Content-Type: application/json" \
+        -d @parsed_notes.json \
+        -o drummiez_take.wav
+   open drummiez_take.wav  # or use any player
+   ```
+   For MusicXML, just upload the `.musicxml` file to `/parse_drumsheet/` and skip the detector-specific exports.
+
+6. **Run tests before committing:**
+   ```bash
+   SKIP_MODEL_LOAD=1 pytest
+   ```
+   The env var avoids loading Torch during collection, mirroring the approach inside `tests/test_parse_endpoint.py`.
+
+### 12. Future Enhancements
+
+1. Replace the current left-to-right duration heuristic with beat tracking derived from staff spacing or a learned rhythm classifier so offsets/durations resemble the real score instead of fixed 1.0 beats.
+2. Feed detector class ids into a proper transcription layer that reconstructs stems/beams and generates a richer MusicXML output, closing the loop with actual notation instead of the current simplified drum hits.
+3. Extend `/parse_drumsheet/` to capture Oemer outputs (if available) and feed them into automated regression tests once the real OMR library exposes a callable `run` helper.
+4. Containerize the backend with a `Dockerfile` that installs FluidSynth/soundfonts so deployment targets have consistent audio dependencies.
+
+**2025-11-07 (Evening Update):**
+
+- Captured the training-performance tweaks (image down-scaling, tensor caching, CLI knobs, dataloader prefetch) plus the sandboxed OpenMP limitation in this progress log so the history clearly shows why model training should now move faster on the M3 Pro and why verification needs to happen outside the restricted environment.
