@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python/
+
+# Virtual Environment
+.venv/
+env/
+virtualenv/
+virtual-env/
+
+# Dependencies
+/venv/
+/env/
+
+# Editor/IDE
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Pipenv
+Pipfile.lock
+
+# Logs
+*.log
+
+# Tests and coverage artifacts (kept local only)
+tests/
+.pytest_cache/
+.tox/
+.mypy_cache/
+.dmypy.json
+.coverage
+coverage.xml
+htmlcov/
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Uploaded files (if any)
+uploads/
+
+# Local datasets / generated media
+data/
+*.wav
+*.mp3
+*.mid
+*.midi
+*.flac
+*.aiff
+
+# Large artifacts / datasets / weights
+data/ds2_dense/
+data/ds2_dense.tar.gz
+data/DeepScoresV2.zip
+data/*.tar.gz
+data/*.zip
+*.pth
+*.pt
