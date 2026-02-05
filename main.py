@@ -8,11 +8,11 @@ from fastapi.responses import StreamingResponse
 from typing import Optional
 import importlib
 import os
+import subprocess
 import tempfile
 import shutil
 from uuid import uuid4
 from music21 import converter, instrument, note, stream, tempo, chord
-from midi2audio import FluidSynth
 from PIL import Image
 
 from model_inference import DrumOMRInference, detections_to_notes, load_label_mapping
@@ -102,6 +102,17 @@ DRUM_LABEL_MAP_PATH = os.getenv("DRUM_LABEL_MAP_PATH")
 SKIP_MODEL_LOAD = os.getenv("SKIP_MODEL_LOAD") == "1"
 VALID_ENGINES = {"auto", "detector", "oemer"}
 
+PERCUSSION_KEYWORDS = (
+    "perc",
+    "drum",
+    "kit",
+    "snare",
+    "cymbal",
+    "tom",
+    "hi-hat",
+    "hi hat",
+)
+
 LABEL_TO_MIDI = {}
 if DRUM_LABEL_MAP_PATH and os.path.exists(DRUM_LABEL_MAP_PATH):
     try:
@@ -178,14 +189,25 @@ async def parse_drumsheet(
                 ) from exc
         else:
             if can_use_detector and engine in {"auto", "detector"}:
-                parsed_notes = _parse_image_with_model(tmp_file_path)
-                return {
-                    "filename": file.filename,
-                    "bpm": bpm,
-                    "status": "parsing_successful",
-                    "parsed_notes": parsed_notes,
-                    "source": "detector",
-                }
+                try:
+                    parsed_notes = _parse_image_with_model(tmp_file_path)
+                    return {
+                        "filename": file.filename,
+                        "bpm": bpm,
+                        "status": "parsing_successful",
+                        "parsed_notes": parsed_notes,
+                        "source": "detector",
+                    }
+                except HTTPException as det_exc:
+                    if engine == "auto" and can_use_oemer:
+                        LOGGER.info(
+                            "Detector failed (%s); attempting OEMER fallback.",
+                            getattr(det_exc, "detail", det_exc),
+                        )
+                        musicxml_content = _run_oemer(tmp_file_path)
+                        source_label = "oemer"
+                    else:
+                        raise
 
             if can_use_oemer and engine in {"auto", "oemer"}:
                 musicxml_content = _run_oemer(tmp_file_path)
@@ -213,29 +235,30 @@ async def parse_drumsheet(
         # Extract drum notes with improved logic
         parsed_notes = []
         for part in score.parts:
-            if isinstance(part.getInstrument(), instrument.Percussion):
-                for item in part.flat.notesAndRests:
-                    if isinstance(item, note.Rest):
+            if not _part_is_percussion(part):
+                continue
+            for item in part.flat.notesAndRests:
+                if isinstance(item, note.Rest):
+                    parsed_notes.append({
+                        "midi_pitch": 0,
+                        "duration": float(item.duration.quarterLength),
+                        "offset": float(item.offset)
+                    })
+                    continue
+
+                if isinstance(item, chord.Chord):
+                    note_iterable = item.notes
+                else:
+                    note_iterable = [item]
+
+                for playable in note_iterable:
+                    if isinstance(playable, (note.Note, note.Unpitched)):
+                        midi_pitch = get_midi_pitch(playable)
                         parsed_notes.append({
-                            "midi_pitch": 0,
-                            "duration": float(item.duration.quarterLength),
-                            "offset": float(item.offset)
+                            "midi_pitch": midi_pitch,
+                            "duration": float(playable.duration.quarterLength),
+                            "offset": float(playable.offset)
                         })
-                        continue
-
-                    if isinstance(item, chord.Chord):
-                        note_iterable = item.notes
-                    else:
-                        note_iterable = [item]
-
-                    for playable in note_iterable:
-                        if isinstance(playable, (note.Note, note.Unpitched)):
-                            midi_pitch = get_midi_pitch(playable)
-                            parsed_notes.append({
-                                "midi_pitch": midi_pitch,
-                                "duration": float(playable.duration.quarterLength),
-                                "offset": float(playable.offset)
-                            })
 
         response_payload = {
             "filename": file.filename,
@@ -288,10 +311,11 @@ async def generate_drum_audio(background_tasks: BackgroundTasks, parsed_notes: d
             midi_file_path = midi_tmp.name
             s.write('midi', fp=midi_file_path)
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as wav_tmp:
-            wav_file_path = wav_tmp.name
-            fs = FluidSynth(SOUNDFONT_PATH)
-            fs.midi_to_audio(midi_file_path, wav_file_path)
+        wav_fd, wav_file_path = tempfile.mkstemp(suffix=".wav")
+        os.close(wav_fd)
+        os.unlink(wav_file_path)
+
+        _render_with_fluidsynth(midi_file_path, wav_file_path)
 
         def audio_stream(path: str):
             with open(path, "rb") as audio_file:
@@ -399,3 +423,72 @@ def _parse_image_with_model(image_path: str):
         )
 
     return parsed_notes
+
+
+def _part_is_percussion(part) -> bool:
+    """
+    Determines whether a music21 part should be treated as percussion even when
+    the source MusicXML omits explicit instrument metadata (common with OEMER output).
+    """
+    try:
+        instrument_candidate = part.getInstrument(returnDefault=False)
+    except TypeError:
+        instrument_candidate = part.getInstrument()
+
+    if isinstance(instrument_candidate, instrument.Percussion):
+        return True
+
+    candidate_names = []
+    if instrument_candidate and getattr(instrument_candidate, "instrumentName", None):
+        candidate_names.append(instrument_candidate.instrumentName)
+
+    for attr in ("partName", "fullName", "id"):
+        value = getattr(part, attr, None)
+        if value:
+            candidate_names.append(str(value))
+
+    for name in candidate_names:
+        lowered_name = str(name).lower()
+        if any(keyword in lowered_name for keyword in PERCUSSION_KEYWORDS):
+            return True
+
+    return False
+
+
+def _render_with_fluidsynth(midi_path: str, wav_path: str) -> None:
+    """
+    Uses the system fluidsynth binary to render a MIDI file to WAV.
+    The midi2audio.FluidSynth helper passes -F/-r after the MIDI path,
+    which recent versions of fluidsynth reject, so we invoke the binary
+    directly with the modern argument order.
+    """
+    fluidsynth_bin = shutil.which("fluidsynth")
+    if not fluidsynth_bin:
+        raise HTTPException(
+            status_code=500,
+            detail="fluidsynth executable not found. Install it (e.g. brew install fluid-synth) and ensure it is on PATH.",
+        )
+
+    command = [
+        fluidsynth_bin,
+        "-ni",
+        "-F",
+        wav_path,
+        "-r",
+        "44100",
+        SOUNDFONT_PATH,
+        midi_path,
+    ]
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        stderr = exc.stderr.strip() if exc.stderr else "unknown error"
+        raise HTTPException(
+            status_code=500,
+            detail=f"FluidSynth rendering failed: {stderr}",
+        ) from exc

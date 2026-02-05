@@ -47,6 +47,9 @@ htmlcov/
 # Notebook checkpoints
 .ipynb_checkpoints/
 
+# Local documentation
+understanding.txt
+
 # Uploaded files (if any)
 uploads/
 

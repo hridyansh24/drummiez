@@ -1,0 +1,1231 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [ 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R ] /Count 11 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+4 0 obj
+<< /Length 2567 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+54 756 Td
+(# Drummiez AI – Friendly Step-by-Step Guide) Tj
+T*
+( ) Tj
+T*
+(*Last updated: $\(date +%Y-%m-%d\)*) Tj
+T*
+( ) Tj
+T*
+(This PDF is meant to feel like a patient tour guide through the Drummiez AI repository. Imagine) Tj
+T*
+( I am walking next to you pointing at each file and line, explaining in plain words what it ) Tj
+T*
+(does, why it exists, and how the whole drum-reading machine works. Read it front-to-back once ) Tj
+T*
+(and you should be able to answer any "what is this?" question about the project.) Tj
+T*
+( ) Tj
+T*
+(---) Tj
+T*
+( ) Tj
+T*
+(## 1. Big Picture Story \(Say It Like We Are Kids\)) Tj
+T*
+( ) Tj
+T*
+(- **What is Drummiez?** It is a Python backend that takes a drum sheet \(photo, PDF, or already-) Tj
+T*
+(clean MusicXML\) and turns it into two things: \(1\) a neat list of drum hits with timing, and \(2\)) Tj
+T*
+( a WAV file you can play.) Tj
+T*
+(- **How does it do that?** Think of a factory line:) Tj
+T*
+(  1. **Upload Bay** – FastAPI receives a file.) Tj
+T*
+(  2. **Understanding Booth** – either a deep-learning detector looks at the image or the OEMER ) Tj
+T*
+(tool converts PDFs/images to MusicXML.) Tj
+T*
+(  3. **Music Brain** – music21 reads MusicXML or detector notes, figures out drums and timing.) Tj
+T*
+(  4. **Sound Forge** – midi2audio + FluidSynth use a soundfont to turn the notes into real ) Tj
+T*
+(audio.) Tj
+T*
+(- **Who are the helpers?** Torch + torchvision supply the Faster R-CNN detector, ) Tj
+T*
+(music21/midi2audio/FluidSynth handle music conversion, and FastAPI exposes everything through ) Tj
+T*
+(endpoints.) Tj
+T*
+( ) Tj
+T*
+(---) Tj
+T*
+( ) Tj
+T*
+(## 2. Architecture Overview) Tj
+T*
+( ) Tj
+T*
+(```) Tj
+T*
+(User upload \(PNG/JPG/BMP/TIFF/PDF/MusicXML\)) Tj
+T*
+(      │) Tj
+T*
+(      ├─► FastAPI `/parse_drumsheet/`) Tj
+T*
+(      │      ├─► Detector path \(`DrumOMRInference` + `detections_to_notes`\)) Tj
+T*
+(      │      └─► OEMER path \(PDF/image → MusicXML → music21 parsing\)) Tj
+T*
+(      │) Tj
+T*
+(      └─► FastAPI `/generate_drum_audio/`) Tj
+T*
+(             └─► music21 stream → MIDI → FluidSynth → WAV stream) Tj
+T*
+(```) Tj
+T*
+( ) Tj
+T*
+(Environment variables \(`SOUNDFONT_PATH`, `MODEL_WEIGHTS_PATH`, `DRUM_LABEL_MAP_PATH`, ) Tj
+T*
+(`MODEL_CONFIDENCE`, `SKIP_MODEL_LOAD`\) configure which options are available at runtime.) Tj
+T*
+( ) Tj
+T*
+(---) Tj
+T*
+( ) Tj
+T*
+(## 3. File-by-File Map) Tj
+T*
+( ) Tj
+T*
+(| Path | What it stores / does | Plain explanation |) Tj
+T*
+(| ---- | --------------------- | ----------------- |) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R >> >> /MediaBox [0 0 612 792] /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 3448 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+54 756 Td
+(| `README.md` | Marketing + quickstart doc | Gives outsiders the elevator pitch, endpoints, env) Tj
+T*
+( vars, and roadmap. |) Tj
+T*
+(| `main.py` | FastAPI app + MIDI/audio helpers | Entry point; defines endpoints, loads models, ) Tj
+T*
+(renders audio, glues everything. |) Tj
+T*
+(| `model_inference.py` | Torch-based detector wrapper + heuristics | Knows how to load Faster ) Tj
+T*
+(R-CNN weights and convert detections to playable notes. |) Tj
+T*
+(| `prepare_dataset.py` | JSON → CSV data prep script | Filters DeepScores-style annotations ) Tj
+T*
+(into a training CSV. |) Tj
+T*
+(| `train_model.py` | Training loop for detector | Builds dataset, trains Faster R-CNN, saves ) Tj
+T*
+(`drum_omr_model.pth`. |) Tj
+T*
+(| `run_parse_and_render.sh` | Convenience shell helper | Activates venv, parses an image, ) Tj
+T*
+(renders WAV locally. |) Tj
+T*
+(| `tests/` | Pytest suite | Ensures detector heuristics and FastAPI endpoints behave. |) Tj
+T*
+(| `requirements.txt`, `Pipfile`, `Pipfile.lock` | Dependency manifests | Pin every library ) Tj
+T*
+(\(FastAPI, music21, torch, etc.\). Pipfile mirrors requirements for Pipenv users. |) Tj
+T*
+(| `drum_omr_model.pth` | Trained detector weights | Binary state dict loaded by ) Tj
+T*
+(`DrumOMRInference`. |) Tj
+T*
+(| `parsed_notes.json`, `peaceful_take.wav`, `Peaceful-Easy-Feeling-...png` | Sample ) Tj
+T*
+(outputs/assets | Example run results and demo sheet music. |) Tj
+T*
+(| `data/prepared_data.csv` | Example prepared dataset | Output of `prepare_dataset.py`; used by) Tj
+T*
+( `train_model.py`. |) Tj
+T*
+(| `process_explanation.txt`, `understanding.txt`, `todo6nov.txt`, `review_todo.txt` | Internal ) Tj
+T*
+(docs and checklists | Explain planning history, detailed architecture, and improvement to-dos. ) Tj
+T*
+(|) Tj
+T*
+(| `run_parse_and_render.sh` | Script to test pipeline locally | Shows how to jump straight from) Tj
+T*
+( sheet image to parsed JSON + WAV. |) Tj
+T*
+(| `tests/conftest.py` | Adds repo root to `sys.path` | Ensures pytest can import modules when ) Tj
+T*
+(run locally. |) Tj
+T*
+(| `tests/test_model_inference.py`, `tests/test_parse_endpoint.py` | Test cases | Document ) Tj
+T*
+(expected behavior for detector heuristics and API flows. |) Tj
+T*
+(| `requirements.txt` | Python dependencies | Includes FastAPI, PyTorch, midi2audio, music21, ) Tj
+T*
+(etc. |) Tj
+T*
+(| Misc files \(`__pycache__`, `Pipfile.lock`\) | Build artifacts / dependency locks | Not hand-) Tj
+T*
+(edited; created by Python tooling. |) Tj
+T*
+( ) Tj
+T*
+(*\(Yes, some entries appear twice intentionally to keep this map self-contained.\)*) Tj
+T*
+( ) Tj
+T*
+(---) Tj
+T*
+( ) Tj
+T*
+(## 4. Deep Dive Into Each Important File) Tj
+T*
+( ) Tj
+T*
+(### 4.1 `main.py` – The API Brain) Tj
+T*
+( ) Tj
+T*
+(#### Imports and global setup) Tj
+T*
+(- Top comments remind us which dataset inspired the project \(DeepScores\). Then Python imports ) Tj
+T*
+(roll in: FastAPI pieces, typing helpers, os/path utilities, subprocess for FluidSynth, ) Tj
+T*
+(tempfile/shutil for safe scratch handling, and uuid4 for output filenames.) Tj
+T*
+(- `music21` modules \(`converter`, `instrument`, `note`, `stream`, `tempo`, `chord`\) plus ) Tj
+T*
+(Pillow’s `Image` cover the music parsing and image IO needs.) Tj
+T*
+(- `model_inference` imports the detector class and utilities. An optional import block tries to) Tj
+T*
+( `import oemer`; if it fails, `OEMER_RUNNER` stays `None`, which later decides whether PDF ) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R >> >> /MediaBox [0 0 612 792] /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 3050 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+54 756 Td
+(parsing is possible.) Tj
+T*
+( ) Tj
+T*
+(#### FastAPI app + logging) Tj
+T*
+(- `app = FastAPI\(\)` instantiates the web app, and `LOGGER` grabs a namespaced logger ) Tj
+T*
+(\(`drummiez`\) for informative logs.) Tj
+T*
+( ) Tj
+T*
+(#### Drum MIDI dictionary \(`DRUM_MIDI_MAP`\)) Tj
+T*
+(- This big dictionary is the translation sheet from drum names \(text\) to MIDI note numbers. ) Tj
+T*
+(Example: "acoustic snare" → 38, "closed hi-hat" → 42. It’s referenced whenever we need to ) Tj
+T*
+(figure out which MIDI pitch a note should become.) Tj
+T*
+( ) Tj
+T*
+(#### `get_midi_pitch\(n\)` helper) Tj
+T*
+(- Input: a `music21` note/rest object.) Tj
+T*
+(- Steps:) Tj
+T*
+(  1. Try to read `instrumentName` either from the note’s instrument or its part. If it matches ) Tj
+T*
+(a key in `DRUM_MIDI_MAP`, return that MIDI number.) Tj
+T*
+(  2. If the note is unpitched, inspect `displayStep` \(letters like C/D/E\) as a fallback ) Tj
+T*
+(mapping.) Tj
+T*
+(  3. If still lost, look at the notehead style. An "x" notehead usually means hi-hat.) Tj
+T*
+(  4. As a final safety, default to MIDI 35 \(acoustic bass drum\). This ensures the pipeline ) Tj
+T*
+(never crashes just because metadata was missing.) Tj
+T*
+( ) Tj
+T*
+(#### Configurable constants) Tj
+T*
+(- `SOUNDFONT_PATH`, `MODEL_WEIGHTS_PATH`, `MODEL_CONFIDENCE`, `DRUM_LABEL_MAP_PATH`, ) Tj
+T*
+(`SKIP_MODEL_LOAD` all read from environment variables with sensible defaults \(FluidR3_GM ) Tj
+T*
+(soundfont, `drum_omr_model.pth`, threshold 0.5, etc.\).) Tj
+T*
+(- `SUPPORTED_IMAGE_EXT` and `OEMER_SUPPORTED_EXT` define which file extensions the detector and) Tj
+T*
+( OEMER can handle. ) Tj
+T*
+(- `VALID_ENGINES = {"auto", "detector", "oemer"}` restricts the `engine` query parameter to ) Tj
+T*
+(known values.) Tj
+T*
+(- `PERCUSSION_KEYWORDS` is a tuple of substrings \("drum", "snare", etc.\) used later to guess if) Tj
+T*
+( a MusicXML part is percussive.) Tj
+T*
+( ) Tj
+T*
+(#### Loading optional label map + detector) Tj
+T*
+(- `LABEL_TO_MIDI` starts empty. If `DRUM_LABEL_MAP_PATH` exists, `load_label_mapping` turns ) Tj
+T*
+(JSON like `{ "1": 42 }` into `{1: 42}` and logs the success. Failures are caught and logged ) Tj
+T*
+(without crashing.) Tj
+T*
+(- `INFERENCE_RUNNER` is either:) Tj
+T*
+(  - `None` if `SKIP_MODEL_LOAD=1` or weights are missing.) Tj
+T*
+(  - A ready `DrumOMRInference` instance if weights load properly \(the class handles device ) Tj
+T*
+(selection and evaluation mode\). Exceptions become warnings so the API still responds for ) Tj
+T*
+(MusicXML/OEMER uploads.) Tj
+T*
+( ) Tj
+T*
+(#### Endpoint: `GET /`) Tj
+T*
+(- `read_root\(\)` simply returns a JSON welcome message. Handy for health checks.) Tj
+T*
+( ) Tj
+T*
+(#### Endpoint: `POST /parse_drumsheet/`) Tj
+T*
+(Signature: `parse_drumsheet\(file: UploadFile, bpm: Optional[int]=100, engine: str="auto"\)`) Tj
+T*
+( ) Tj
+T*
+(1. **File saving** – The uploaded file is read asynchronously and dumped into a temporary file ) Tj
+T*
+(\(preserving extension\) so downstream libraries can open it like a normal file.) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R >> >> /MediaBox [0 0 612 792] /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 3884 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+54 756 Td
+(2. **Engine validation** – Extension is lower-cased, `engine` is normalized, and we compute ) Tj
+T*
+(flags: `is_musicxml`, `is_supported_image`, `can_use_detector`, `can_use_oemer`.) Tj
+T*
+(3. **Engine enforcement** – If the client explicitly asks for `detector` but the detector ) Tj
+T*
+(cannot run, respond with HTTP 503. Same for `oemer` when the OEMER module or extension is ) Tj
+T*
+(missing.) Tj
+T*
+(4. **MusicXML shortcut** – When the upload already is `.xml` / `.musicxml`, decode the bytes to) Tj
+T*
+( string right away; `music21` parsing happens later.) Tj
+T*
+(5. **Detector path \(images\)** – If we can run the detector and `engine` is `auto` or ) Tj
+T*
+(`detector`, `_parse_image_with_model` is called. That function uses ) Tj
+T*
+(`INFERENCE_RUNNER.predict_path` and `detections_to_notes` to build `parsed_notes`. On success ) Tj
+T*
+(the endpoint returns immediately with `source: "detector"`.) Tj
+T*
+(6. **Auto fallback** – If the detector path raises an `HTTPException` while in `auto` mode and ) Tj
+T*
+(OEMER is available, the code logs the failure and falls back to `_run_oemer`.) Tj
+T*
+(7. **OEMER path** – For PDFs or when forced, `_run_oemer` launches `oemer.run` against the temp) Tj
+T*
+( file, gathers the generated `.musicxml`, and returns its text. `source_label` becomes ) Tj
+T*
+(`"oemer"` so the response explains where notes came from.) Tj
+T*
+(8. **Unsupported case** – If none of the above succeeded, the function raises HTTP 501 telling ) Tj
+T*
+(the user to upload a known format.) Tj
+T*
+(9. **MusicXML parsing** – `converter.parse` from music21 reads the MusicXML string and yields a) Tj
+T*
+( `score`. We iterate through `score.parts`, skip non-percussion parts via ) Tj
+T*
+(`_part_is_percussion`, and walk every note/rest:) Tj
+T*
+(   - Rests become `midi_pitch=0` entries \(duration + offset copied over\).) Tj
+T*
+(   - Chords are expanded into individual notes.) Tj
+T*
+(   - `get_midi_pitch` assigns MIDI numbers to actual drum hits.) Tj
+T*
+(10. **Response assembly** – Build a JSON dict with filename, bpm, status, notes, and optional ) Tj
+T*
+(source label. The `finally` block deletes the temporary file no matter what happened.) Tj
+T*
+( ) Tj
+T*
+(#### Endpoint: `POST /generate_drum_audio/`) Tj
+T*
+(Signature: `generate_drum_audio\(background_tasks, parsed_notes: dict, bpm: Optional[int]=100\)`) Tj
+T*
+( ) Tj
+T*
+(1. **Soundfont check** – If `SOUNDFONT_PATH` does not point to a real file, abort with HTTP 500) Tj
+T*
+( explaining how to set it.) Tj
+T*
+(2. **music21 stream creation** – A `stream.Stream` is created, a tempo mark is added, and a ) Tj
+T*
+(percussion `Part` is inserted.) Tj
+T*
+(3. **Rebuilding notes** – Iterate over `parsed_notes["parsed_notes"]`. For each entry, create a) Tj
+T*
+( `note.Rest` when `midi_pitch == 0`, else a `note.Note` with its `midi`. Duration and offset ) Tj
+T*
+(are set to match the JSON.) Tj
+T*
+(4. **MIDI export** – Write the stream to a temporary `.mid` file.) Tj
+T*
+(5. **WAV rendering** – Create a placeholder `.wav` file, delete it immediately, then call ) Tj
+T*
+(`_render_with_fluidsynth\(midi_file_path, wav_file_path\)` which shells out to the `fluidsynth` ) Tj
+T*
+(binary.) Tj
+T*
+(6. **Streaming response** – Wrap the WAV bytes in a generator `audio_stream` that yields ) Tj
+T*
+(chunks. Feed it to `StreamingResponse` with `audio/wav` media type and a random filename.) Tj
+T*
+(7. **Cleanup** – `BackgroundTasks` is used to delete the WAV file once FastAPI finishes ) Tj
+T*
+(streaming it. The MIDI file is deleted immediately in the `finally` block.) Tj
+T*
+( ) Tj
+T*
+(#### Helper: `_is_supported_image\(extension\)`) Tj
+T*
+(Returns `True` when the extension lives inside `SUPPORTED_IMAGE_EXT` \(PNG/JPG/JPEG/BMP/TIFF\). ) Tj
+T*
+(Tiny guard but keeps logic readable.) Tj
+T*
+( ) Tj
+T*
+(#### Helper: `_can_process_with_oemer\(extension\)`) Tj
+ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R >> >> /MediaBox [0 0 612 792] /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Length 2823 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+54 756 Td
+(Checks two things at once: the OEMER module actually imported, and the file extension is either) Tj
+T*
+( a supported image or PDF.) Tj
+T*
+( ) Tj
+T*
+(#### Helper: `_run_oemer\(source_path\)`) Tj
+T*
+(1. Ensure OEMER exists; if not, raise HTTP 503.) Tj
+T*
+(2. Create a temporary directory \(`tempfile.mkdtemp`\).) Tj
+T*
+(3. Call `OEMER_RUNNER\(source_path, output_path=output_dir\)`.) Tj
+T*
+(4. Collect generated `.musicxml` files, error if none exist.) Tj
+T*
+(5. Open the first MusicXML file as UTF-8 text and return it.) Tj
+T*
+(6. Always delete the temporary dir via `shutil.rmtree`.) Tj
+T*
+( ) Tj
+T*
+(#### Helper: `_parse_image_with_model\(image_path\)`) Tj
+T*
+(1. Confirm `INFERENCE_RUNNER` is available; otherwise 503 with instructions.) Tj
+T*
+(2. Run `predict_path` to get detections. If empty, raise HTTP 422.) Tj
+T*
+(3. Open the image with Pillow to read its height.) Tj
+T*
+(4. Call `detections_to_notes\(detections, img.height, label_to_midi=LABEL_TO_MIDI or None\)`.) Tj
+T*
+(5. Return the parsed notes list.) Tj
+T*
+( ) Tj
+T*
+(#### Helper: `_part_is_percussion\(part\)`) Tj
+T*
+(- Tries `part.getInstrument\(\)`; if it returns `instrument.Percussion`, we’re done.) Tj
+T*
+(- Otherwise gather candidate names from `instrumentName`, `partName`, `fullName`, and `id`, and) Tj
+T*
+( check if any of them contain keywords like "snare" or "tom".) Tj
+T*
+(- Returns `True` if the part looks percussive. This keeps OEMER outputs useful even when ) Tj
+T*
+(metadata is incomplete.) Tj
+T*
+( ) Tj
+T*
+(#### Helper: `_render_with_fluidsynth\(midi_path, wav_path\)`) Tj
+T*
+(- Locates the `fluidsynth` CLI via `shutil.which`.) Tj
+T*
+(- Builds a command array `['fluidsynth', '-ni', '-F', wav_path, '-r', '44100', SOUNDFONT_PATH, ) Tj
+T*
+(midi_path]`.) Tj
+T*
+(- Runs it with `subprocess.run\(check=True\)` to capture errors cleanly.) Tj
+T*
+(- Wraps failure into HTTP 500 with stderr messages. This custom runner avoids argument-order ) Tj
+T*
+(quirks inside the `midi2audio` helper.) Tj
+T*
+( ) Tj
+T*
+(#### `if __name__ == "__main__"`) Tj
+T*
+(Running `python main.py` will launch `uvicorn` on `0.0.0.0:8000`, so the script doubles as both) Tj
+T*
+( module and executable.) Tj
+T*
+( ) Tj
+T*
+(---) Tj
+T*
+( ) Tj
+T*
+(### 4.2 `model_inference.py` – Detector Utilities) Tj
+T*
+( ) Tj
+T*
+(#### Module docstring) Tj
+T*
+(- Immediately states the purpose: wrap the trained Faster R-CNN and turn detections into drum ) Tj
+T*
+(notes.) Tj
+T*
+( ) Tj
+T*
+(#### Imports and logging) Tj
+T*
+(- `dataclasses`, `statistics.median`, typing hints, and `import_module` are used for type ) Tj
+T*
+(safety and lazy torch loading. PIL’s `Image` is needed for reading input images.) Tj
+T*
+( ) Tj
+T*
+(#### `Detection` dataclass) Tj
+T*
+(- Holds `bbox`, `score`, and `label`. Using a dataclass keeps code tidy and self-documenting.) Tj
+ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R >> >> /MediaBox [0 0 612 792] /Contents 12 0 R >>
+endobj
+14 0 obj
+<< /Length 3315 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+54 756 Td
+( ) Tj
+T*
+(#### `DrumOMRInference` class) Tj
+T*
+(- `__init__\(weights_path, detection_threshold=0.5, device=None\)`:) Tj
+T*
+(  - Validates the path.) Tj
+T*
+(  - Calls `_load_torch\(\)` which lazily imports PyTorch. If torch isn’t installed, it raises ) Tj
+T*
+(`RuntimeError` early.) Tj
+T*
+(  - Chooses device \(`cuda` if available, else CPU\).) Tj
+T*
+(  - Builds the Faster R-CNN architecture via `_build_model`. Notice `weights=None` so the ) Tj
+T*
+(backbone isn’t preloaded; we expect to load our own state dict.) Tj
+T*
+(  - Loads weights from disk, moves model to device, switches to `eval\(\)`.) Tj
+T*
+(- `_build_model\(num_classes=2\)` recreates the training-time architecture: ResNet-50 FPN ) Tj
+T*
+(backbone + new `FastRCNNPredictor` with 2 classes \(background + drum glyph\).) Tj
+T*
+(- `predict_image\(image\)`:) Tj
+T*
+(  1. Converts PIL image to tensor via `torchvision.transforms.functional.to_tensor`.) Tj
+T*
+(  2. Runs the model in `no_grad` mode.) Tj
+T*
+(  3. Extracts `boxes`, `scores`, `labels`. Handles `None` cases gracefully.) Tj
+T*
+(  4. Applies the detection threshold and returns a list of `Detection` objects.) Tj
+T*
+(- `predict_path\(path\)` simply opens the file, converts to RGB, and forwards to `predict_image`.) Tj
+T*
+( ) Tj
+T*
+(#### `detections_to_notes\(...\)`) Tj
+T*
+(Parameters: detections iterable, `image_height`, optional `duration`, optional `label_to_midi` ) Tj
+T*
+(mapping.) Tj
+T*
+( ) Tj
+T*
+(1. Sort detections by left-most x coordinate to determine play order.) Tj
+T*
+(2. If no detections, return empty list.) Tj
+T*
+(3. Validate `image_height` \(avoid divide-by-zero by forcing `>=1`\).) Tj
+T*
+(4. Estimate drum staff bounds via `_estimate_staff_bounds` – uses 5th and 95th percentiles of y) Tj
+T*
+( centers to ignore stray marks.) Tj
+T*
+(5. Compute x-center spacing median to understand beat separation \(`_estimate_spacing`\).) Tj
+T*
+(6. For each detection:) Tj
+T*
+(   - Use label-based MIDI mapping when provided \(`label_to_midi[det.label]`\).) Tj
+T*
+(   - Otherwise map vertical position to hi-hat/snare/kick via `_midi_from_relative_position` → ) Tj
+T*
+(`_midi_from_vertical_position`.) Tj
+T*
+(   - Estimate note duration based on distance to the next detection, quantized to sixteenth ) Tj
+T*
+(notes \(`_quantize`\).) Tj
+T*
+(   - Track `current_offset` so every note knows when it should play.) Tj
+T*
+(7. Build dictionaries with `midi_pitch`, `duration`, `offset`, `confidence`, and `label`.) Tj
+T*
+( ) Tj
+T*
+(#### `load_label_mapping\(json_path\)`) Tj
+T*
+(- Opens JSON, expects a dict.) Tj
+T*
+(- Keys are coerced to ints; values can be direct ints or nested dicts containing `"midi"`.) Tj
+T*
+(- Returns `{label_id: midi}`; raises `ValueError` for malformed entries. This is how `main.py` ) Tj
+T*
+(can override heuristics with precise instrument mappings.) Tj
+T*
+( ) Tj
+T*
+(#### Helper functions) Tj
+T*
+(- `_midi_from_vertical_position\(y_center_norm\)` – simple threshold mapping \(<0.33 hi-hat, <0.66) Tj
+T*
+( snare, else kick\).) Tj
+T*
+(- `_estimate_staff_bounds\(detections, image_height\)` – percentile-based top/bottom to avoid ) Tj
+T*
+(outliers.) Tj
+T*
+(- `_midi_from_relative_position\(y_center, staff_bounds\)` – normalizes absolute y coordinate ) Tj
+T*
+(into `[0,1]` and feeds `_midi_from_vertical_position`.) Tj
+ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R >> >> /MediaBox [0 0 612 792] /Contents 14 0 R >>
+endobj
+16 0 obj
+<< /Length 2871 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+54 756 Td
+(- `_percentile\(sorted_values, pct\)` – returns percentile even for short lists.) Tj
+T*
+(- `_estimate_spacing\(x_centers\)` – median spacing between neighbors \(minimum 1.0 pixel\) to ) Tj
+T*
+(guess beat length.) Tj
+T*
+(- `_quantize\(value, step\)` – snaps to nearest multiple of `step`.) Tj
+T*
+(- `_load_torch\(\)` – wraps `import_module\("torch"\)` so import errors surface as friendly runtime) Tj
+T*
+( exceptions.) Tj
+T*
+( ) Tj
+T*
+(---) Tj
+T*
+( ) Tj
+T*
+(### 4.3 `prepare_dataset.py` – Filtering Raw Annotations) Tj
+T*
+( ) Tj
+T*
+(1. Imports: `json` and `csv`, because we read DeepScores JSON and emit a CSV.) Tj
+T*
+(2. `prepare_dataset\(json_path, output_csv_path\)`:) Tj
+T*
+(   - Opens the JSON, expects `images`, `annotations`, `categories` top-level keys.) Tj
+T*
+(   - Defines `drum_categories`, a whitelist of percussion-friendly annotation classes \(various ) Tj
+T*
+(noteheads, rests, dynamics, articulations, beams, ties, etc.\).) Tj
+T*
+(   - For every image, iterate through its `ann_ids`, fetch the annotation, then through ) Tj
+T*
+(`ann['cat_id']` to see all categories assigned to that annotation.) Tj
+T*
+(   - If the category name is in `drum_categories` and the bounding box is valid \(width/height >) Tj
+T*
+( 0\), append a dict with filename, bbox, and category.) Tj
+T*
+(   - Finally, write the list to CSV with headers `filename`, `bbox`, `category`.) Tj
+T*
+(   - Returns the prepared data list so other scripts/tests can reuse it.) Tj
+T*
+(3. CLI entry point \(`if __name__ == '__main__'`\): calls the function on ) Tj
+T*
+(`data/ds2_dense/deepscores_train.json` and prints how many rows landed in ) Tj
+T*
+(`data/prepared_data.csv`.) Tj
+T*
+( ) Tj
+T*
+(*Why it matters:* This script is how you curate the dataset that `train_model.py` expects. ) Tj
+T*
+(Without it the detector would have nothing to learn from.) Tj
+T*
+( ) Tj
+T*
+(---) Tj
+T*
+( ) Tj
+T*
+(### 4.4 `train_model.py` – Training the Detector) Tj
+T*
+( ) Tj
+T*
+(#### Imports) Tj
+T*
+(- Torch + torchvision pieces, pandas for CSV reading, os/PIL for file IO.) Tj
+T*
+( ) Tj
+T*
+(#### `DrumSheetDataset`) Tj
+T*
+(- `__init__\(csv_file, root_dir, transform=None\)` stores annotations, image folder, and optional) Tj
+T*
+( transform.) Tj
+T*
+(- `__len__` returns number of rows.) Tj
+T*
+(- `__getitem__\(idx\)`:) Tj
+T*
+(  1. Builds the absolute image path, opens it as RGB.) Tj
+T*
+(  2. Parses the bbox string from CSV, turning `"[x1, y1, x2, y2]"` into floats.) Tj
+T*
+(  3. Wraps the bbox into tensors shaped exactly how PyTorch detection models expect \(`boxes`: ) Tj
+T*
+(`[N,4]`\).) Tj
+T*
+(  4. Uses placeholder labels \(`torch.ones`\) because training currently assumes binary ) Tj
+T*
+(classification.) Tj
+T*
+(  5. Applies transforms like `ToTensor` if provided.) Tj
+T*
+(  6. Returns `\(image, target\)` pair.) Tj
+T*
+( ) Tj
+T*
+(#### `get_model\(num_classes\)`) Tj
+ET
+endstream
+endobj
+17 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R >> >> /MediaBox [0 0 612 792] /Contents 16 0 R >>
+endobj
+18 0 obj
+<< /Length 2968 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+54 756 Td
+(- Loads `fasterrcnn_resnet50_fpn\(pretrained=True\)`.) Tj
+T*
+(- Replaces the ROI head with a `FastRCNNPredictor` sized to `num_classes`. This is the same ) Tj
+T*
+(architecture the inference helper rebuilds.) Tj
+T*
+( ) Tj
+T*
+(#### `main\(\)` training routine) Tj
+T*
+(1. Define transforms \(currently only `ToTensor`\).) Tj
+T*
+(2. Instantiate `DrumSheetDataset` pointing at `data/prepared_data.csv` / ) Tj
+T*
+(`data/ds2_dense/images`.) Tj
+T*
+(3. Split into 80% train, 20% validation. Then take up to 100 samples from validation for quick ) Tj
+T*
+(evaluation.) Tj
+T*
+(4. Create `DataLoader`s with `batch_size=2` and custom collate function `lambda x: ) Tj
+T*
+(tuple\(zip\(*x\)\)`, which is the recommended way for torchvision detection models.) Tj
+T*
+(5. Set `num_classes=2`, instantiate the model, move it to GPU if available.) Tj
+T*
+(6. Define SGD optimizer \(lr=0.005, momentum=0.9, weight decay=5e-4\).) Tj
+T*
+(7. Training loop \(currently `num_epochs=1`\):) Tj
+T*
+(   - `model.train\(\)`.) Tj
+T*
+(   - For each batch, move tensors to device, call `model\(images, targets\)` which returns a dict) Tj
+T*
+( of losses, sum them, backprop, and step the optimizer.) Tj
+T*
+(   - Print `Epoch: {epoch}, Loss: {loss}` for quick feedback.) Tj
+T*
+(8. Validation snippet:) Tj
+T*
+(   - `model.eval\(\)` and disable gradients.) Tj
+T*
+(   - For each batch in validation loader, run predictions, then compute IoU between each ) Tj
+T*
+(predicted box and every ground-truth box via `calculate_iou`. Keep the best IoU per prediction,) Tj
+T*
+( accumulate totals, and finally compute an average IoU.) Tj
+T*
+(9. After training: `torch.save\(model.state_dict\(\), 'drum_omr_model.pth'\)` so `main.py` can use ) Tj
+T*
+(the weights.) Tj
+T*
+( ) Tj
+T*
+(#### `calculate_iou\(boxA, boxB\)`) Tj
+T*
+(- Standard intersection-over-union math: compute overlap rectangle, area of each box, union ) Tj
+T*
+(area, and return `interArea / union`. Adds `+1` padding to mimic pixel-inclusive coordinates.) Tj
+T*
+( ) Tj
+T*
+(#### CLI guard) Tj
+T*
+(- `if __name__ == '__main__': main\(\)` lets you run `python train_model.py` to kick off ) Tj
+T*
+(training.) Tj
+T*
+( ) Tj
+T*
+(---) Tj
+T*
+( ) Tj
+T*
+(### 4.5 `tests/` – Ensuring Behavior) Tj
+T*
+( ) Tj
+T*
+(#### `tests/conftest.py`) Tj
+T*
+(- Adds the repository root to `sys.path` so imports like `import main` work even when pytest ) Tj
+T*
+(changes directories.) Tj
+T*
+( ) Tj
+T*
+(#### `tests/test_model_inference.py`) Tj
+T*
+(- `test_label_mapping_overrides_vertical_mapping\(\)` – ensures `detections_to_notes` respects ) Tj
+T*
+(explicit label-to-MIDI maps.) Tj
+T*
+(- `test_vertical_mapping_used_when_label_missing\(\)` – ensures the hi-hat/snare/kick heuristic ) Tj
+T*
+(fires in order.) Tj
+T*
+(- `test_staff_bounds_survive_large_image_height\(\)` – checks percentile logic still works on ) Tj
+T*
+(tall images.) Tj
+T*
+(- `test_horizontal_spacing_influences_duration_and_offset\(\)` – verifies the timing math reacts ) Tj
+ET
+endstream
+endobj
+19 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R >> >> /MediaBox [0 0 612 792] /Contents 18 0 R >>
+endobj
+20 0 obj
+<< /Length 3255 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+54 756 Td
+(to horizontal spacing and quantization.) Tj
+T*
+( ) Tj
+T*
+(#### `tests/test_parse_endpoint.py`) Tj
+T*
+(- Pre-sets `SKIP_MODEL_LOAD=1` so torch doesn’t initialize during testing.) Tj
+T*
+(- `_fake_png_bytes\(\)` / `_fake_pdf_bytes\(\)` generate in-memory upload payloads.) Tj
+T*
+(- `test_parse_endpoint_uses_detector\(\)` monkeypatches `INFERENCE_RUNNER` and ) Tj
+T*
+(`detections_to_notes` to confirm the endpoint returns detector results when given a PNG.) Tj
+T*
+(- `test_parse_endpoint_uses_oemer_for_pdf\(\)` fakes an OEMER run + `music21` parse to ensure PDF) Tj
+T*
+( uploads take the OEMER path.) Tj
+T*
+(- `test_parse_endpoint_auto_falls_back_to_oemer\(\)` ensures `engine=auto` tries OEMER when the ) Tj
+T*
+(detector raises `HTTPException`.) Tj
+T*
+( ) Tj
+T*
+(*These tests double as executable documentation — by reading them you see exactly how the API ) Tj
+T*
+(is expected to behave.*) Tj
+T*
+( ) Tj
+T*
+(---) Tj
+T*
+( ) Tj
+T*
+(### 4.6 Support Scripts and Assets) Tj
+T*
+( ) Tj
+T*
+(- **`run_parse_and_render.sh`** – sample end-to-end script. Activates `.venv`, sets ) Tj
+T*
+(`IMAGE_PATH`/`BPM`, runs an inline Python block that:) Tj
+T*
+(  1. Checks the image and detector exist.) Tj
+T*
+(  2. Calls `main._parse_image_with_model` to produce `parsed_notes.json`.) Tj
+T*
+(  3. Builds a music21 stream from those notes and saves a MIDI file.) Tj
+T*
+(  4. Calls `main._render_with_fluidsynth` to render `peaceful_take.wav`.) Tj
+T*
+(- **`parsed_notes.json` / `peaceful_take.wav` / `Peaceful-Easy-Feeling-....png`** – the outputs) Tj
+T*
+( that script produced for the Eagles drum sheet example.) Tj
+T*
+(- **`process_explanation.txt`** – narrative of how the author set up the project, libraries ) Tj
+T*
+(chosen, and next steps. Good for onboarding.) Tj
+T*
+(- **`understanding.txt`** – very detailed internal architecture write-up. It mirrors much of ) Tj
+T*
+(this PDF but from the developer’s perspective.) Tj
+T*
+(- **`todo6nov.txt`** – prioritized to-do list covering OMR improvements, dataset prep, ) Tj
+T*
+(deployment, and frontend plans.) Tj
+T*
+(- **`review_todo.txt`** – code review notes calling out current shortcomings \(dataset ) Tj
+T*
+(splitting, label usage, fallback handling, tests\).) Tj
+T*
+(- **`requirements.txt`** – pins versions for FastAPI \(0.120.1\), PyTorch \(2.6.0\), torchvision ) Tj
+T*
+(\(0.21.0\), music21, midi2audio, pytest, and many supporting libraries like numpy, Pillow, httpx.) Tj
+T*
+(- **`Pipfile` / `Pipfile.lock`** – allow Pipenv users to replicate the exact environment.) Tj
+T*
+(- **Binary model/data files** – `drum_omr_model.pth` \(weights\) and `data/prepared_data.csv` ) Tj
+T*
+(\(sample training CSV\). You don’t edit these manually; training scripts regenerate them.) Tj
+T*
+( ) Tj
+T*
+(---) Tj
+T*
+( ) Tj
+T*
+(## 5. Walking Through the Runtime Flow) Tj
+T*
+( ) Tj
+T*
+(1. **Startup** – When FastAPI starts \(via `uvicorn main:app` or `python main.py`\), environment ) Tj
+T*
+(variables decide whether the detector loads. If `SKIP_MODEL_LOAD=1` or weights missing, only ) Tj
+T*
+(the MusicXML/OEMER path works.) Tj
+T*
+(2. **User uploads file → `/parse_drumsheet/`**) Tj
+T*
+(   - File saved temporarily.) Tj
+T*
+(   - If it’s MusicXML, skip to music21 parsing.) Tj
+ET
+endstream
+endobj
+21 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R >> >> /MediaBox [0 0 612 792] /Contents 20 0 R >>
+endobj
+22 0 obj
+<< /Length 4072 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+54 756 Td
+(   - If it’s an image: try detector first \(unless `engine=oemer`\). Detector success returns ) Tj
+T*
+(JSON immediately.) Tj
+T*
+(   - If detector fails and `engine=auto`, try OEMER; otherwise bubble up error.) Tj
+T*
+(   - OEMER or direct MusicXML path parse the XML into percussion notes using `get_midi_pitch` ) Tj
+T*
+(and `_part_is_percussion` heuristics.) Tj
+T*
+(   - JSON response includes `parsed_notes`, `source`, `bpm`.) Tj
+T*
+(3. **Client optionally POSTs JSON → `/generate_drum_audio/`**) Tj
+T*
+(   - Confirms soundfont file exists.) Tj
+T*
+(   - Rebuilds a music21 stream from the JSON.) Tj
+T*
+(   - Writes MIDI, shells out to FluidSynth, streams WAV back in chunks.) Tj
+T*
+(4. **Cleanup** – Temporary files deleted via context managers and `BackgroundTasks`.) Tj
+T*
+( ) Tj
+T*
+(---) Tj
+T*
+( ) Tj
+T*
+(## 6. Why the Project Is Good or Bad & How to Improve) Tj
+T*
+( ) Tj
+T*
+(| Area | Why it’s good / bad | Possible improvements |) Tj
+T*
+(| ---- | ------------------- | --------------------- |) Tj
+T*
+(| Detector integration | **Good:** Modular `DrumOMRInference` lazily loads torch, supports ) Tj
+T*
+(custom label maps, and plugs into FastAPI seamlessly. **Bad:** Training code still treats ) Tj
+T*
+(everything as one class, so multi-instrument detection is limited. | 1\) Update ) Tj
+T*
+(`DrumSheetDataset` + training loop to keep real category labels. 2\) Train multi-class model so ) Tj
+T*
+(`label_to_midi` mappings shine. |) Tj
+T*
+(| MusicXML parsing | **Good:** `get_midi_pitch` + `_part_is_percussion` handle messy OEMER ) Tj
+T*
+(outputs and fallback defaults mean no crashes. **Bad:** Mapping is heuristic; hi-hats vs rides ) Tj
+T*
+(vs ghost notes all become the same few MIDI pitches. | 1\) Expand `DRUM_MIDI_MAP` and heuristics) Tj
+T*
+( to read articulations/noteheads. 2\) Add unit tests covering more MusicXML fixtures. |) Tj
+T*
+(| Audio rendering | **Good:** Uses proven FluidSynth CLI, streams audio to avoid huge memory ) Tj
+T*
+(usage. **Bad:** Fails hard if `SOUNDFONT_PATH` missing; no caching or streaming progress ) Tj
+T*
+(feedback. | 1\) Provide default bundled soundfont or friendlier instructions. 2\) Consider ) Tj
+T*
+(caching repeated renders of the same note sequence. |) Tj
+T*
+(| File uploads | **Good:** Temp files + extension checks prevent memory blowups. **Bad:** No ) Tj
+T*
+(explicit size limits or virus scanning; OEMER dependency errors surface only at runtime. | 1\) ) Tj
+T*
+(Enforce max upload size via FastAPI `UploadFile`. 2\) Surface OEMER install instructions in `/` ) Tj
+T*
+(endpoint or README when missing. |) Tj
+T*
+(| Dataset prep + training | **Good:** Scripts are short and documented, enabling users to ) Tj
+T*
+(retrain. **Bad:** Each CSV row only has one bbox, so many annotations per image are ignored; ) Tj
+T*
+(train/val split can leak identical pages. | 1\) Re-architect dataset so each sample returns all ) Tj
+T*
+(boxes for the image. 2\) Split train/val by image, not by row. |) Tj
+T*
+(| Testing | **Good:** Pytest suite covers detector heuristics and API fallbacks, using ) Tj
+T*
+(monkeypatch to avoid heavy dependencies. **Bad:** No tests yet for `prepare_dataset`, training ) Tj
+T*
+(helpers, or `/generate_drum_audio`. | 1\) Add fixture-driven tests covering dataset filtering + ) Tj
+T*
+(audio rendering. 2\) Integrate tests into CI so regressions are caught automatically. |) Tj
+T*
+(| Documentation | **Good:** README, process_explanation, understanding docs, and this PDF make ) Tj
+T*
+(onboarding approachable. **Bad:** Info is scattered across multiple files, and some environment) Tj
+T*
+( steps \(FluidSynth install\) could trip people up. | 1\) Consolidate docs into a MkDocs or Sphinx) Tj
+T*
+( site. 2\) Add troubleshooting FAQ for OEMER, torch, FluidSynth issues. |) Tj
+T*
+(| Deployment story | **Good:** Pure Python stack works on CPU, so it fits cheap servers. ) Tj
+T*
+(**Bad:** No Dockerfile, no CI/CD, no frontend yet. | 1\) Containerize app \(install FluidSynth + ) Tj
+T*
+(soundfont\). 2\) Publish minimal React/CLI client once API stabilizes. |) Tj
+T*
+( ) Tj
+ET
+endstream
+endobj
+23 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R >> >> /MediaBox [0 0 612 792] /Contents 22 0 R >>
+endobj
+24 0 obj
+<< /Length 1018 >>
+stream
+BT
+/F1 10 Tf
+14 TL
+54 756 Td
+(---) Tj
+T*
+( ) Tj
+T*
+(## 7. Recap Checklist \(Use This to Verify Understanding\)) Tj
+T*
+( ) Tj
+T*
+(- ✅ I know every endpoint \(`/`, `/parse_drumsheet/`, `/generate_drum_audio/`\) and what they ) Tj
+T*
+(return.) Tj
+T*
+(- ✅ I can describe how images flow through `DrumOMRInference` → `detections_to_notes` and how ) Tj
+T*
+(MusicXML files get parsed via music21.) Tj
+T*
+(- ✅ I understand why `get_midi_pitch`, `_part_is_percussion`, and `_render_with_fluidsynth` ) Tj
+T*
+(exist.) Tj
+T*
+(- ✅ I can run `prepare_dataset.py` and `train_model.py` to retrain the detector, and I know ) Tj
+T*
+(where the weights are used.) Tj
+T*
+(- ✅ I can explain what each test validates and how to run them \(`SKIP_MODEL_LOAD=1 pytest`\).) Tj
+T*
+(- ✅ I know where support docs and sample assets live, and what improvements the TODO files ) Tj
+T*
+(suggest.) Tj
+T*
+( ) Tj
+T*
+(If you can tick all of those boxes, you officially understand Drummiez AI end-to-end. Happy ) Tj
+T*
+(drumming! 🥁) Tj
+ET
+endstream
+endobj
+25 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R >> >> /MediaBox [0 0 612 792] /Contents 24 0 R >>
+endobj
+xref
+0 26
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000186 00000 n 
+0000000254 00000 n 
+0000002872 00000 n 
+0000002998 00000 n 
+0000006497 00000 n 
+0000006623 00000 n 
+0000009724 00000 n 
+0000009850 00000 n 
+0000013786 00000 n 
+0000013914 00000 n 
+0000016789 00000 n 
+0000016917 00000 n 
+0000020284 00000 n 
+0000020412 00000 n 
+0000023335 00000 n 
+0000023463 00000 n 
+0000026483 00000 n 
+0000026611 00000 n 
+0000029918 00000 n 
+0000030046 00000 n 
+0000034170 00000 n 
+0000034298 00000 n 
+0000035368 00000 n 
+trailer
+<< /Size 26 /Root 1 0 R >>
+startxref
+35496
+%%EOF

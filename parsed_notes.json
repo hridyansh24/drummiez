@@ -1,0 +1,540 @@
+{
+  "filename": "Peaceful-Easy-Feeling-Eagles-Drum-Sheet-Music.png",
+  "bpm": 120,
+  "status": "parsing_successful",
+  "parsed_notes": [
+    {
+      "midi_pitch": 38,
+      "duration": 1.75,
+      "offset": 0.0,
+      "confidence": 0.9815945625305176,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.75,
+      "offset": 1.75,
+      "confidence": 0.9895511269569397,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 4.5,
+      "offset": 2.5,
+      "confidence": 0.9738251566886902,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 0.25,
+      "offset": 7.0,
+      "confidence": 0.9894772171974182,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 2.5,
+      "offset": 7.25,
+      "confidence": 0.9240899085998535,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 25.0,
+      "offset": 9.75,
+      "confidence": 0.9550337791442871,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.25,
+      "offset": 34.75,
+      "confidence": 0.8959715366363525,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 0.25,
+      "offset": 35.0,
+      "confidence": 0.9920046925544739,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 24.0,
+      "offset": 35.25,
+      "confidence": 0.9879764914512634,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 0.25,
+      "offset": 59.25,
+      "confidence": 0.5584808588027954,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 24.5,
+      "offset": 59.5,
+      "confidence": 0.6707692742347717,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 0.25,
+      "offset": 84.0,
+      "confidence": 0.941145658493042,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 1.0,
+      "offset": 84.25,
+      "confidence": 0.9876552224159241,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 0.25,
+      "offset": 85.25,
+      "confidence": 0.9854831695556641,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 1.75,
+      "offset": 85.5,
+      "confidence": 0.9606468081474304,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.75,
+      "offset": 87.25,
+      "confidence": 0.9737650156021118,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 4.5,
+      "offset": 88.0,
+      "confidence": 0.9810840487480164,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 0.25,
+      "offset": 92.5,
+      "confidence": 0.773781418800354,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 1.75,
+      "offset": 92.75,
+      "confidence": 0.9753574728965759,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.5,
+      "offset": 94.5,
+      "confidence": 0.9285727143287659,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 5.5,
+      "offset": 95.0,
+      "confidence": 0.963821291923523,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 0.25,
+      "offset": 100.5,
+      "confidence": 0.986083447933197,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 1.75,
+      "offset": 100.75,
+      "confidence": 0.9865017533302307,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.5,
+      "offset": 102.5,
+      "confidence": 0.9878695607185364,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 5.0,
+      "offset": 103.0,
+      "confidence": 0.9855294823646545,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 3.25,
+      "offset": 108.0,
+      "confidence": 0.9804689288139343,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 0.5,
+      "offset": 111.25,
+      "confidence": 0.9952657222747803,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 25.5,
+      "offset": 111.75,
+      "confidence": 0.9685859084129333,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 0.25,
+      "offset": 137.25,
+      "confidence": 0.6918739080429077,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.25,
+      "offset": 137.5,
+      "confidence": 0.8511456251144409,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.5,
+      "offset": 137.75,
+      "confidence": 0.5700159072875977,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 1.0,
+      "offset": 138.25,
+      "confidence": 0.9836961030960083,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 0.5,
+      "offset": 139.25,
+      "confidence": 0.9914841055870056,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 1.5,
+      "offset": 139.75,
+      "confidence": 0.9961482286453247,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.5,
+      "offset": 141.25,
+      "confidence": 0.9840113520622253,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 4.5,
+      "offset": 141.75,
+      "confidence": 0.9881966710090637,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 2.0,
+      "offset": 146.25,
+      "confidence": 0.9584974646568298,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.5,
+      "offset": 148.25,
+      "confidence": 0.9554081559181213,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 5.5,
+      "offset": 148.75,
+      "confidence": 0.9820968508720398,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 0.5,
+      "offset": 154.25,
+      "confidence": 0.9955778121948242,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 1.5,
+      "offset": 154.75,
+      "confidence": 0.9913409352302551,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.5,
+      "offset": 156.25,
+      "confidence": 0.9857747554779053,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 4.5,
+      "offset": 156.75,
+      "confidence": 0.9883689880371094,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 2.5,
+      "offset": 161.25,
+      "confidence": 0.9897622466087341,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 1.0,
+      "offset": 163.75,
+      "confidence": 0.9892492294311523,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 0.75,
+      "offset": 164.75,
+      "confidence": 0.9943745136260986,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 23.5,
+      "offset": 165.5,
+      "confidence": 0.984872579574585,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 0.25,
+      "offset": 189.0,
+      "confidence": 0.7378209829330444,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.25,
+      "offset": 189.25,
+      "confidence": 0.6634116172790527,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 1.0,
+      "offset": 189.5,
+      "confidence": 0.9923437237739563,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 0.75,
+      "offset": 190.5,
+      "confidence": 0.9888317584991455,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 1.5,
+      "offset": 191.25,
+      "confidence": 0.9979560375213623,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.25,
+      "offset": 192.75,
+      "confidence": 0.980346143245697,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 4.5,
+      "offset": 193.0,
+      "confidence": 0.9697858691215515,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 1.0,
+      "offset": 197.5,
+      "confidence": 0.9873172640800476,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 1.5,
+      "offset": 198.5,
+      "confidence": 0.5339414477348328,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.25,
+      "offset": 200.0,
+      "confidence": 0.9784573316574097,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 5.5,
+      "offset": 200.25,
+      "confidence": 0.9789866805076599,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 1.0,
+      "offset": 205.75,
+      "confidence": 0.9890986680984497,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 1.5,
+      "offset": 206.75,
+      "confidence": 0.9976790547370911,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.25,
+      "offset": 208.25,
+      "confidence": 0.9922266006469727,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 4.5,
+      "offset": 208.5,
+      "confidence": 0.987245500087738,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 2.5,
+      "offset": 213.0,
+      "confidence": 0.961700975894928,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 1.0,
+      "offset": 215.5,
+      "confidence": 0.9801278114318848,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 1.0,
+      "offset": 216.5,
+      "confidence": 0.9945911765098572,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 1.5,
+      "offset": 217.5,
+      "confidence": 0.9927763938903809,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.25,
+      "offset": 219.0,
+      "confidence": 0.6812779903411865,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 1.0,
+      "offset": 219.25,
+      "confidence": 0.9725802540779114,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 1.0,
+      "offset": 220.25,
+      "confidence": 0.9716453552246094,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 1.5,
+      "offset": 221.25,
+      "confidence": 0.9700321555137634,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.25,
+      "offset": 222.75,
+      "confidence": 0.9692127704620361,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 4.5,
+      "offset": 223.0,
+      "confidence": 0.9359602928161621,
+      "label": 1
+    },
+    {
+      "midi_pitch": 36,
+      "duration": 1.25,
+      "offset": 227.5,
+      "confidence": 0.9922602772712708,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 1.25,
+      "offset": 228.75,
+      "confidence": 0.8573466539382935,
+      "label": 1
+    },
+    {
+      "midi_pitch": 42,
+      "duration": 0.25,
+      "offset": 230.0,
+      "confidence": 0.9488229155540466,
+      "label": 1
+    },
+    {
+      "midi_pitch": 38,
+      "duration": 1.0,
+      "offset": 230.25,
+      "confidence": 0.9911715388298035,
+      "label": 1
+    }
+  ],
+  "source": "detector"
+}

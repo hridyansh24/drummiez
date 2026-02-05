@@ -1,0 +1,6 @@
+Code review action items:
+1. Rework dataset prep + DrumSheetDataset so that each sample includes every bounding box for a page and split train/val per image. Right now each CSV row becomes a separate sample, so most glyphs in the image stay unlabeled background and identical pages leak into both splits.
+2. Preserve category labels from prepared_data.csv when creating targets and train a true multi-class detector so label_to_midi mappings (and future ghost-note/rimshot support) become usable.
+3. Make /parse_drumsheet auto mode gracefully fall back to OEMER when the detector raises HTTP errors (e.g., no detections) instead of returning 4xx immediately.
+4. Relax the MusicXML parsing filter so percussion parts without explicit instrument metadata (common in OEMER output) still emit notes; otherwise parse_drumsheet returns an empty parsed_notes array for many XMLs.
+5. Add regression tests for the MusicXML pipeline, dataset loader, and detector fallback paths so the bugs above stay caught.

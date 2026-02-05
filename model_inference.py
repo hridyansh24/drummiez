@@ -8,7 +8,8 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
-from typing import Dict, Iterable, List, Optional
+from statistics import median
+from typing import Dict, Iterable, List, Optional, Tuple
 from importlib import import_module
 
 from PIL import Image
@@ -113,6 +114,9 @@ def detections_to_notes(
     """
 
     sorted_dets = sorted(detections, key=lambda det: det.bbox[0])
+    if not sorted_dets:
+        return []
+
     parsed_notes: List[dict] = []
     label_to_midi = label_to_midi or {}
 
@@ -120,22 +124,44 @@ def detections_to_notes(
         LOGGER.warning("Invalid image height %s; defaulting to 1.0 for normalization", image_height)
         image_height = 1.0
 
+    # Estimate the vertical drum staff bounds using percentiles so margins/title text do not skew mapping.
+    staff_bounds = _estimate_staff_bounds(sorted_dets, image_height)
+
+    x_centers = [((det.bbox[0] + det.bbox[2]) / 2.0) for det in sorted_dets]
+    spacing = _estimate_spacing(x_centers)
+    base_duration = max(duration, 0.0625)  # avoid zero-length defaults
+    quantization_step = 0.25  # sixteenth-note grid
+    current_offset = 0.0
+
     for idx, det in enumerate(sorted_dets):
         midi_pitch = label_to_midi.get(det.label)
         if midi_pitch is None:
             y_min, y_max = det.bbox[1], det.bbox[3]
-            y_center_norm = ((y_min + y_max) / 2.0) / image_height
-            midi_pitch = _midi_from_vertical_position(y_center_norm)
+            midi_pitch = _midi_from_relative_position(
+                (y_min + y_max) / 2.0,
+                staff_bounds,
+            )
+
+        if len(sorted_dets) == 1:
+            note_duration = base_duration
+        else:
+            if idx < len(sorted_dets) - 1:
+                raw_ratio = (x_centers[idx + 1] - x_centers[idx]) / spacing if spacing > 0 else 1.0
+            else:
+                raw_ratio = 1.0
+            note_duration = max(raw_ratio * base_duration, quantization_step)
+            note_duration = _quantize(note_duration, quantization_step)
 
         parsed_notes.append(
             {
                 "midi_pitch": midi_pitch,
-                "duration": duration,
-                "offset": idx * duration,
+                "duration": note_duration,
+                "offset": round(current_offset, 5),
                 "confidence": det.score,
                 "label": det.label,
             }
         )
+        current_offset += note_duration
 
     return parsed_notes
 
@@ -180,6 +206,73 @@ def _midi_from_vertical_position(y_center_norm: float) -> int:
     if y_center_norm < 0.66:
         return 38  # Snare
     return 36  # Kick
+
+
+def _estimate_staff_bounds(detections: List[Detection], image_height: float) -> Tuple[float, float]:
+    """
+    Returns (top, bottom) in absolute pixels that roughly bound the percussion staff.
+    Percentiles help ignore score titles or footers.
+    """
+    centers = sorted(((det.bbox[1] + det.bbox[3]) / 2.0) for det in detections)
+    top = _percentile(centers, 5.0)
+    bottom = _percentile(centers, 95.0)
+
+    if bottom - top < 1.0:
+        # Fall back to the full image height if detections are degenerate.
+        return (0.0, max(image_height, 1.0))
+
+    return (top, bottom)
+
+
+def _midi_from_relative_position(y_center: float, staff_bounds: Tuple[float, float]) -> int:
+    """
+    Converts an absolute y coordinate to MIDI by normalizing against the detected staff bounds.
+    """
+    top, bottom = staff_bounds
+    staff_height = max(bottom - top, 1.0)
+    relative = (y_center - top) / staff_height
+    relative = max(0.0, min(1.0, relative))
+    return _midi_from_vertical_position(relative)
+
+
+def _percentile(sorted_values: List[float], pct: float) -> float:
+    """
+    Lightweight percentile helper (pct in [0, 100]).
+    """
+    if not sorted_values:
+        return 0.0
+
+    pct = max(0.0, min(100.0, pct))
+    k = (len(sorted_values) - 1) * (pct / 100.0)
+    lower_idx = int(k)
+    upper_idx = min(lower_idx + 1, len(sorted_values) - 1)
+    fraction = k - lower_idx
+    lower = sorted_values[lower_idx]
+    upper = sorted_values[upper_idx]
+    return lower + (upper - lower) * fraction
+
+
+def _estimate_spacing(x_centers: List[float]) -> float:
+    """
+    Uses the median horizontal distance between neighboring detections as the base rhythmic spacing.
+    """
+    if len(x_centers) < 2:
+        return 1.0
+
+    deltas = [
+        max(next_center - center, 1.0)
+        for center, next_center in zip(x_centers[:-1], x_centers[1:])
+    ]
+    return max(median(deltas), 1.0)
+
+
+def _quantize(value: float, step: float) -> float:
+    """
+    Snaps the provided value to the nearest multiple of `step`.
+    """
+    if step <= 0:
+        return value
+    return round(value / step) * step
 
 
 def _load_torch():
